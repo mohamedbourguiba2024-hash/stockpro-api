@@ -20,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -139,5 +140,30 @@ public class ProductService {
                 p.getQuantite() <= p.getSeuilAlerte(),
                 c != null ? c.getId() : null, c != null ? c.getNom() : null,
                 s != null ? s.getId() : null, s != null ? s.getNom() : null);
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exportCsv() {
+        StringBuilder sb = new StringBuilder("\uFEFF"); // BOM UTF-8 pour Excel
+        sb.append("Référence;Nom;Catégorie;Fournisseur;Prix;Quantité;Seuil d'alerte;Stock bas\n");
+        for (Product p : repository.findAll(Sort.by("nom"))) {
+            sb.append(csv(p.getReference())).append(';')
+                    .append(csv(p.getNom())).append(';')
+                    .append(csv(p.getCategory() != null ? p.getCategory().getNom() : "")).append(';')
+                    .append(csv(p.getSupplier() != null ? p.getSupplier().getNom() : "")).append(';')
+                    .append(p.getPrix().toPlainString().replace('.', ',')).append(';')
+                    .append(p.getQuantite()).append(';')
+                    .append(p.getSeuilAlerte()).append(';')
+                    .append(p.getQuantite() <= p.getSeuilAlerte() ? "Oui" : "Non").append('\n');
+        }
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    private String csv(String value) {
+        if (value == null) return "";
+        String v = value.replace("\"", "\"\"");
+        // protection contre l'injection de formules dans Excel
+        if (!v.isEmpty() && "=+-@".indexOf(v.charAt(0)) >= 0) v = "'" + v;
+        return "\"" + v + "\"";
     }
 }

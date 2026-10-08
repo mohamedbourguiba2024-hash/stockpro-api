@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,4 +25,10 @@ public interface ProductRepository
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.id = :id")
     Optional<Product> findByIdForUpdate(@Param("id") Long id);
+
+    @Query("select coalesce(sum(p.prix * p.quantite), 0) from Product p")
+    BigDecimal totalStockValue();
+
+    @Query("select count(p) from Product p where p.quantite <= p.seuilAlerte")
+    long countLowStock();
 }
