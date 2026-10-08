@@ -27,6 +27,7 @@ public class Product {
     @Column(nullable = false)
     private String nom;
 
+    @JdbcTypeCode(SqlTypes.NVARCHAR)
     @Column(length = 1000)
     private String description;
 

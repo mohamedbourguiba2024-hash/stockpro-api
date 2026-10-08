@@ -23,5 +23,6 @@ public class Supplier {
 
     private String telephone;
     private String email;
+    @JdbcTypeCode(SqlTypes.NVARCHAR)
     private String adresse;
 }

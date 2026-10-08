@@ -3,6 +3,9 @@ package com.stockpro.api.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,7 +33,8 @@ public class StockMovement {
 
     @Column(nullable = false)
     private LocalDateTime date;
-
+    @JdbcTypeCode(SqlTypes.NVARCHAR)
+    @Column(length = 500)
     private String commentaire;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
