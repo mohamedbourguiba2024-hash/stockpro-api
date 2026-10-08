@@ -3,6 +3,8 @@ package com.stockpro.api.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "users")
@@ -15,6 +17,7 @@ public class User {
     private Long id;
 
     @NotBlank
+    @JdbcTypeCode(SqlTypes.NVARCHAR)
     @Column(nullable = false)
     private String nom;
 
