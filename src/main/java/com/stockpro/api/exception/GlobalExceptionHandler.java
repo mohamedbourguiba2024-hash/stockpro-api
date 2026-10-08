@@ -63,6 +63,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur interne du serveur");
     }
 
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponse> insufficientStock(InsufficientStockException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message) {
         return ResponseEntity.status(status)
                 .body(ErrorResponse.of(status.value(), status.getReasonPhrase(), message));
