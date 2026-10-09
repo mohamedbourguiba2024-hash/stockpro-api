@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${DB_SA_PASSWORD}
+    ports:
+      - "1435:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SA_PASSWORD: ${DB_SA_PASSWORD}
+    entrypoint: >
+      /bin/bash -c "/opt/mssql-tools18/bin/sqlcmd -C -S db -U sa -P \"$$SA_PASSWORD\"
+      -Q \"IF DB_ID('stockpro') IS NULL CREATE DATABASE stockpro\""
+
+  api:
+    build: .
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://db:1433;databaseName=stockpro;encrypt=true;trustServerCertificate=true
+      DB_USER: sa
+      DB_PASSWORD: ${DB_SA_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+
+volumes:
+  sqldata:
